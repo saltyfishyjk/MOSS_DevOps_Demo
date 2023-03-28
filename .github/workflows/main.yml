@@ -30,5 +30,4 @@ jobs:
           export NVM_DIR=~/.nvm
           source ~/.nvm/nvm.sh
           npm install
-          npm run dev
-        
+          nohup npm run dev serve >web.log 2>&1 & exit
