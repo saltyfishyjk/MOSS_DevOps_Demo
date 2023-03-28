@@ -25,6 +25,7 @@ jobs:
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
         script: |
-          cd ~
-          mkdir tmp
+          cd /home/ubuntu/tmp/MOSS_DevOps_Demo/Vue_CICD_Demo
+          git pull
+          npm run dev
         
