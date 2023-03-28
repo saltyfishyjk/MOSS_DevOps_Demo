@@ -28,5 +28,6 @@ jobs:
           conda activate shieask_cicd_demo
           cd /home/ubuntu/tmp/MOSS_DevOps_Demo/Vue_CICD_Demo
           git pull
+          npm install
           npm run dev
         
