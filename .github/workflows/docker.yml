@@ -29,8 +29,12 @@ jobs:
         uses: appleboy/ssh-action@master
         # 这是一些步骤需要的参数，这里需要提供腾讯云服务器的IP地址，SSH密钥，以及要执行的命令
         with:
-          host: ${{ secrets.HOST }} # 这是一个GitHub Secrets变量，你需要在仓库设置中添加它，并填写你自己的腾讯云服务器的IP地址
-          key: ${{ secrets.TENCENT_CLOUD_SSH_KEY }} # 这是另一个GitHub Secrets变量，你需要在仓库设置中添加它，并填写你自己的腾讯云服务器的SSH密钥
+          host: ${{ secrets.HOST}}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          #host: ${{ secrets.HOST }} # 这是一个GitHub Secrets变量，你需要在仓库设置中添加它，并填写你自己的腾讯云服务器的IP地址
+          #key: ${{ secrets.TENCENT_CLOUD_SSH_KEY }} # 这是另一个GitHub Secrets变量，你需要在仓库设置中添加它，并填写你自己的腾讯云服务器的SSH密钥
           script: | # 这是要在腾讯云服务器上执行的命令，可以有多行，每行以-开头
             - docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest # 这是一个命令，用于从DockerHub拉取构建好的镜像
             - docker stop ${{ secrets.DOCKER_HUB_REPO_NAME }} || true # 这是一个命令，用于停止已经运行的容器，如果没有则忽略错误
