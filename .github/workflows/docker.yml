@@ -23,17 +23,29 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest
           # tags: your-dockerhub-username/your-repo-name:latest
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Tencent Cloud CLI
-        run: |
-          curl -o- https://curl.qcloud.com/raw.githubusercontent.com/tencentcloud/tencentcloud-cli/master/install.sh | bash
-          echo "$HOME/.tencentcloud/bin" >> $GITHUB_PATH
-      - name: Login to Tencent Cloud CLI
-        run: |
-          tencentcloud configure set --region ap-guangzhou --secret-id ${{ secrets.TENCENT_CLOUD_SECRET_ID }} --secret-key ${{ secrets.TENCENT_CLOUD_SECRET_KEY }}
-      - name: Pull and run Docker image on Tencent Cloud server
-        run: |
-          tencentcloud ssh lhins-9rogwy94 --command "docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }} && docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest && docker run -d -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest"
+
+      - name: Deploy to Tencent Cloud server
+        # 这是最后一个步骤使用的GitHub Action，这里使用appleboy/ssh-action@master来通过SSH连接到腾讯云服务器并执行命令
+        uses: appleboy/ssh-action@master
+        # 这是一些步骤需要的参数，这里需要提供腾讯云服务器的IP地址，SSH密钥，以及要执行的命令
+        with:
+          host: ${{ secrets.HOST }} # 这是一个GitHub Secrets变量，你需要在仓库设置中添加它，并填写你自己的腾讯云服务器的IP地址
+          key: ${{ secrets.TENCENT_CLOUD_SSH_KEY }} # 这是另一个GitHub Secrets变量，你需要在仓库设置中添加它，并填写你自己的腾讯云服务器的SSH密钥
+          script: | # 这是要在腾讯云服务器上执行的命令，可以有多行，每行以-开头
+            - docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest # 这是一个命令，用于从DockerHub拉取构建好的镜像
+            - docker stop ${{ secrets.DOCKER_HUB_REPO_NAME }} || true # 这是一个命令，用于停止已经运行的容器，如果没有则忽略错误
+            - docker rm ${{ secrets.DOCKER_HUB_REPO_NAME }} || true # 这是一个命令，用于删除已经停止的容器，如果没有则忽略错误
+            - docker run -d --name ${{ secrets.DOCKER_HUB_REPO_NAME }} -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest # 这是一个命令，用于运行新的容器，并将容器的80端口映射到服务器的80端口
+
+
+
+      #- name: Install Tencent Cloud CLI
+      #  run: |
+      #    curl -o- https://curl.qcloud.com/raw.githubusercontent.com/tencentcloud/tencentcloud-cli/master/install.sh | bash
+      #    echo "$HOME/.tencentcloud/bin" >> $GITHUB_PATH
+      #- name: Login to Tencent Cloud CLI
+      #  run: |
+      #    tencentcloud configure set --region ap-guangzhou --secret-id ${{ secrets.TENCENT_CLOUD_SECRET_ID }} --secret-key ${{ secrets.TENCENT_CLOUD_SECRET_KEY }}
+      #- name: Pull and run Docker image on Tencent Cloud server
+      #  run: |
+      #    tencentcloud ssh lhins-9rogwy94 --command "docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }} && docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest && docker run -d -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPO_NAME }}:latest"
