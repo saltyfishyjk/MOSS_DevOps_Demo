@@ -1,7 +1,7 @@
 FROM node:16
 WORKDIR /app
 COPY . .
-RUN npm install && npm run build
+RUN npm install && npm run build:prod
 
 FROM nginx
 RUN mkdir /app
